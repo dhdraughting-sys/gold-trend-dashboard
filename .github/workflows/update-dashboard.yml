@@ -20,7 +20,7 @@ on:
     # 12:00 UTC daily. Edit this to change frequency/time - crontab.guru
     # helps if you're not familiar with cron syntax. Don't go below
     # every 5 minutes; GitHub will silently throttle/skip runs that do.
-    - cron: "0 12 * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch: {}
 
 permissions:
