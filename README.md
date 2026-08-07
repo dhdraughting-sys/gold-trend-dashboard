@@ -42,38 +42,8 @@ Scheduler/cron if you want it to refresh automatically every morning.
 - A plain-English "trend read" card (strong uptrend / uptrend forming /
   sideways / downtrend forming / strong downtrend) based on where price
   sits relative to its 50- and 200-day averages.
-- A **technical signal** card: adds up five of the indicators already on
-  the page (trend, price vs 20-day average, recent golden/death cross,
-  RSI vs its midpoint, and 1-week momentum) into one "Bullish lean /
-  Bearish lean / Mixed" read, with a transparent breakdown of exactly
-  what fed into it, plus flags for overbought/oversold and elevated
-  volatility, and how gold's move lines up with the dollar and yields.
-  See the note below - this is a mechanical summary, not advice.
 - A dark mode toggle and a "view as table" option on the price chart for
   the exact numbers.
-
-## About the "technical signal" - please read
-
-You asked whether the app could help you decide between buying and
-shorting. I built the signal card above for that, but I want to be
-upfront about what it is and isn't:
-
-- It's arithmetic, not a forecast. It just adds up the same five
-  indicators shown elsewhere on the dashboard (trend direction, short-term
-  average, recent crossover, RSI, and last week's move) into a single
-  score, so you can see at a glance whether they agree or conflict. It has
-  no view on news, positioning, central bank policy, or anything not in
-  the price series itself.
-- It says nothing about position size, stop placement, or your personal
-  risk tolerance - all of which matter more to trading outcomes than
-  which way a trend indicator points.
-- Trend indicators lag price by design (that's what the moving averages
-  are) and they whipsaw in sideways/choppy markets - a "bullish lean" can
-  flip to "bearish lean" a few sessions later with no news at all.
-- I'm not a financial advisor and this isn't financial advice. Treat the
-  signal as one input alongside your own judgment, and consider talking
-  to a licensed advisor before trading, especially with leverage (which
-  is inherent to shorting).
 
 ## Data source & honesty note
 
@@ -110,15 +80,22 @@ a free GitHub Pages URL. I can't create the GitHub repo for you from here
    Easiest way: on the repo page, click **Add file → Upload files**, drag
    the whole unzipped folder in, and commit. (If you're comfortable with
    git: `git add . && git commit -m "init" && git push`.)
-3. **Turn on Pages**: repo **Settings → Pages → Build and deployment
-   → Source**, select **GitHub Actions**.
-4. **Run it once manually**: go to the **Actions** tab → "Update Gold
-   Trend Dashboard" → **Run workflow**. After it finishes (~1 minute),
-   your dashboard is live at `https://<your-username>.github.io/<repo-name>/`
-   - Settings → Pages shows the exact URL. Bookmark it on your phone.
-5. After that, it refreshes on its own once a day (default: 12:00 UTC -
+3. **Run it once manually**: go to the **Actions** tab → "Update Gold
+   Trend Dashboard" → **Run workflow**. Wait ~1 minute for it to finish -
+   this creates a new `gh-pages` branch in your repo with the built site.
+4. **Turn on Pages**: repo **Settings → Pages → Build and deployment
+   → Source**, select **Deploy from a branch**, then set **Branch** to
+   `gh-pages` and the folder to `/ (root)`, and **Save**.
+   (Some accounts/orgs only show "Deploy from a branch" as an option here,
+   without a "GitHub Actions" choice - that's fine, this setup is built
+   for exactly that case.)
+5. Give it a minute, then your dashboard is live at
+   `https://<your-username>.github.io/<repo-name>/` - Settings → Pages
+   shows the exact URL once it's ready. Bookmark it on your phone.
+6. After that, it refreshes on its own once a day (default: 12:00 UTC -
    edit the `cron:` line in the workflow file to change the time, or add
-   more `cron:` lines to refresh more than once a day).
+   more `cron:` lines to refresh more than once a day). Each run pushes a
+   fresh commit to `gh-pages`, which Pages automatically republishes.
 
 **One thing to know:** GitHub automatically disables scheduled workflows
 after 60 days with no repo activity. If the dashboard ever looks stale,

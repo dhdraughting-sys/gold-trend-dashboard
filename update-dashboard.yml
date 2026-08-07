@@ -1,7 +1,15 @@
 name: Update Gold Trend Dashboard
 
-# Runs on a schedule and publishes the dashboard to GitHub Pages.
-# You can also trigger it manually from the Actions tab (workflow_dispatch).
+# Runs on a schedule, builds the dashboard, and pushes it to the
+# `gh-pages` branch. In your repo's Settings -> Pages, set:
+#   Source: Deploy from a branch
+#   Branch: gh-pages   /  (root)
+# (Some accounts/orgs don't offer the "GitHub Actions" build-type source -
+# this branch-based approach works everywhere, no matter which options
+# your Settings -> Pages page shows.)
+#
+# You can also trigger a run manually from the Actions tab
+# (workflow_dispatch, the "Run workflow" button).
 #
 # NOTE: GitHub disables scheduled workflows automatically after 60 days
 # of repo inactivity. If your dashboard ever looks stale, go to the
@@ -16,9 +24,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -27,9 +33,6 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
@@ -45,11 +48,9 @@ jobs:
       - name: Build dashboard
         run: python gold_trends.py --output site/index.html
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
