@@ -1,0 +1,55 @@
+name: Update Gold Trend Dashboard
+
+# Runs on a schedule and publishes the dashboard to GitHub Pages.
+# You can also trigger it manually from the Actions tab (workflow_dispatch).
+#
+# NOTE: GitHub disables scheduled workflows automatically after 60 days
+# of repo inactivity. If your dashboard ever looks stale, go to the
+# Actions tab and click "Run workflow" (or push any commit) to re-enable it.
+
+on:
+  schedule:
+    # 12:00 UTC daily. Edit this to change frequency/time - crontab.guru
+    # helps if you're not familiar with cron syntax. Don't go below
+    # every 5 minutes; GitHub will silently throttle/skip runs that do.
+    - cron: "0 12 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install yfinance pandas
+
+      - name: Build dashboard
+        run: python gold_trends.py --output site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
