@@ -674,7 +674,11 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   .card .card-sub { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
   .card-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
   .chart-holder { position: relative; height: 300px; }
-  .chart-holder.short { height: 150px; }
+  .chart-holder.short { height: 220px; }
+
+  .range-group { display: flex; gap: 4px; flex-wrap: wrap; }
+  .range-btn { background: none; border: 1px solid var(--border); color: var(--text-secondary); border-radius: 8px; font-size: 12px; padding: 5px 10px; cursor: pointer; }
+  .range-btn.active { background: var(--text-primary); color: var(--surface-1); border-color: var(--text-primary); }
 
   .readout { font-size: 13px; line-height: 1.5; color: var(--text-secondary); margin: 10px 0 0; }
   .readout strong { color: var(--text-primary); }
@@ -831,6 +835,7 @@ function baseTicks(extra) {
 }
 
 let priceChart, rsiChart, compareChart;
+let rsiRangeDays = 63; // default to ~3 months so recent RSI movement is actually legible
 
 function renderPriceChart(gold) {
   const ctx = document.getElementById("priceChart").getContext("2d");
@@ -867,12 +872,25 @@ function renderPriceChart(gold) {
 function renderRsiChart(gold) {
   const ctx = document.getElementById("rsiChart").getContext("2d");
   if (rsiChart) rsiChart.destroy();
+
+  const n = gold.dates.length;
+  const take = rsiRangeDays && rsiRangeDays > 0 ? Math.min(rsiRangeDays, n) : n;
+  const dates = gold.dates.slice(n - take);
+  const rsi = gold.rsi.slice(n - take);
+
+  const rangeLabel = document.getElementById("rsiRangeLabel");
+  if (rangeLabel) rangeLabel.textContent = `Showing the last ${take} session${take === 1 ? "" : "s"}.`;
+
+  // show the actual daily dots once zoomed in close enough that they're legible,
+  // so the real day-to-day movement is visible rather than just a smoothed line
+  const showPoints = take <= 66;
+
   rsiChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: gold.dates,
+      labels: dates,
       datasets: [
-        { label: "RSI (14)", data: gold.rsi, borderColor: cssVar("--series-1"), backgroundColor: "transparent", borderWidth: 2, pointRadius: 0, tension: 0.15 },
+        { label: "RSI (14)", data: rsi, borderColor: cssVar("--series-1"), backgroundColor: "transparent", borderWidth: 2, pointRadius: showPoints ? 2.5 : 0, pointBackgroundColor: cssVar("--series-1"), tension: 0.15 },
       ],
     },
     options: {
@@ -1104,8 +1122,18 @@ function render() {
     </div>
 
     <div class="card">
-      <h2>Momentum - RSI (14)</h2>
-      <p class="card-sub">Above 70 = historically overbought, below 30 = historically oversold.</p>
+      <div class="card-head">
+        <div>
+          <h2>Momentum - RSI (14)</h2>
+          <p class="card-sub">Above 70 = historically overbought, below 30 = historically oversold. <span id="rsiRangeLabel"></span></p>
+        </div>
+        <div class="range-group" id="rsiRangeGroup">
+          <button class="range-btn" data-days="21" type="button">1M</button>
+          <button class="range-btn" data-days="63" type="button">3M</button>
+          <button class="range-btn" data-days="126" type="button">6M</button>
+          <button class="range-btn" data-days="0" type="button">1Y</button>
+        </div>
+      </div>
       <div class="chart-holder short"><canvas id="rsiChart"></canvas></div>
     </div>
 
@@ -1123,6 +1151,15 @@ function render() {
 
   document.getElementById("toggleTable").addEventListener("click", () => {
     document.getElementById("tableWrap").classList.toggle("open");
+  });
+
+  document.querySelectorAll("#rsiRangeGroup .range-btn").forEach((btn) => {
+    btn.classList.toggle("active", Number(btn.dataset.days) === rsiRangeDays);
+    btn.addEventListener("click", () => {
+      rsiRangeDays = Number(btn.dataset.days);
+      document.querySelectorAll("#rsiRangeGroup .range-btn").forEach((b) => b.classList.toggle("active", b === btn));
+      renderRsiChart(gold);
+    });
   });
 }
 
